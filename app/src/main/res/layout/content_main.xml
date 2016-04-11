@@ -33,8 +33,37 @@
         android:layout_height="wrap_content"
         android:text="New Button"
         android:id="@+id/button"
+        android:layout_marginBottom="68dp"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="147dp" />
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/accelX"
+        android:layout_marginTop="52dp"
+        android:layout_below="@+id/textView2"
+        android:layout_alignLeft="@+id/accelY"
+        android:layout_alignStart="@+id/accelY" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/accelY"
+        android:layout_marginTop="19dp"
+        android:layout_below="@+id/accelX"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/accelZ"
+        android:layout_below="@+id/accelY"
+        android:layout_alignLeft="@+id/accelY"
+        android:layout_alignStart="@+id/accelY"
+        android:layout_marginTop="18dp" />
 
 </RelativeLayout>

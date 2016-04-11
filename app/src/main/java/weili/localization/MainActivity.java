@@ -11,19 +11,41 @@ import android.view.MenuItem;
 import android.app.Activity;
 import android.content.Context;
 import android.net.wifi.ScanResult;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.widget.Button;
 import android.widget.TextView;
+import java.lang.Math;
 import android.widget.Toast;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
+    TextView accelXView, accelYView, accelZView;
+    TextView rssiView, sigStrView;
+
+    private float accelDelX = 0, accelDelY = 0, accelDelZ = 0;
+    private float accelOldX, accelOldY, accelOldZ;
+
+    private Sensor accelerometer;
+
+    private SensorManager sensorManager;
+    private WifiManager wifiManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        rssiView = (TextView) findViewById(R.id.textView);
+        sigStrView = (TextView) findViewById(R.id.textView2);
+        accelXView = (TextView) findViewById(R.id.accelX);
+        accelYView = (TextView) findViewById(R.id.accelY);
+        accelZView = (TextView) findViewById(R.id.accelZ);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -44,6 +66,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         final Context context = this;
+        wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+
         Thread t = new Thread() {
             @Override
             public void run() {
@@ -55,17 +83,15 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 int level;
 
-                                WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
                                 int numberOfLevels = 5;
                                 WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 
-                                TextView textView = (TextView) findViewById(R.id.textView);
-                                textView.setText("RSSI value: " + wifiInfo.getRssi());
+                                rssiView.setText("RSSI value: " + wifiInfo.getRssi());
 
                                 level = WifiManager.calculateSignalLevel(wifiInfo.getRssi(), numberOfLevels);
                                 //setContentView(R.layout.layoutName);
-                                TextView textView2 = (TextView) findViewById(R.id.textView2);
-                                textView2.setText("Signal level: " + level);
+
+                                sigStrView.setText("Signal level: " + level);
                             }
                         });
                     }
@@ -102,18 +128,48 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
-        // Level of a Scan Result
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
 
-        /*
-        List<ScanResult> wifiList = wifiManager.getScanResults();
-        for (ScanResult scanResult : wifiList) {
-            level = WifiManager.calculateSignalLevel(scanResult.level, 5);
-            System.out.println("Level is " + level + " out of 5");
+    public void onPause() {
+        super.onPause();
+        sensorManager.unregisterListener(this);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        //System.out.println("event sensor: " + event.sensor);
+        if(event.sensor == accelerometer) {
+            accelDelX = accelOldX - event.values[0];
+            accelDelY = accelOldY - event.values[1];
+            accelDelZ = accelOldZ - event.values[2];
+
+
+            if (Math.abs(accelOldX - event.values[0]) < 2) {
+                accelDelX = 0;
+            }
+            if (Math.abs(accelOldY - event.values[1]) < 2) {
+                accelDelY = 0;
+            }
+            if (Math.abs(accelOldZ - event.values[2]) < 2) {
+                accelDelZ = 0;
+            }
+
+            accelOldX = event.values[0];
+            accelOldY = event.values[1];
+            accelOldZ = event.values[2];
+
+            displayAccelValues();
         }
+    }
 
-        // Level of current connection
-        int rssi = wifiManager.getConnectionInfo().getRssi();
-        level = WifiManager.calculateSignalLevel(rssi, 5);
-        */
+    public void displayAccelValues() {
+        accelXView.setText(Float.toString(accelDelX));
+        accelYView.setText(Float.toString(accelDelY));
+        accelZView.setText(Float.toString(accelDelZ));
     }
 }
