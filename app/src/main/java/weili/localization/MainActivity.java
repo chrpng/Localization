@@ -25,12 +25,26 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     TextView accelXView, accelYView, accelZView;
+    TextView azimutView, pitchView, rollView;
     TextView rssiView, sigStrView;
 
     private float accelDelX = 0, accelDelY = 0, accelDelZ = 0;
     private float accelOldX, accelOldY, accelOldZ;
 
+    private float azimut, pitch, roll;
+
     private Sensor accelerometer;
+    private Sensor linaccelerometer;
+    private Sensor gyroscope;
+    float[] mGravity;
+    float[] mGeomagnetic;
+
+    private Sensor gravity;
+    private Sensor magnetometer;
+    private float[] orientation;
+    private float[] Rs;
+    private float[] I;
+
 
     private SensorManager sensorManager;
     private WifiManager wifiManager;
@@ -45,6 +59,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         accelXView = (TextView) findViewById(R.id.accelX);
         accelYView = (TextView) findViewById(R.id.accelY);
         accelZView = (TextView) findViewById(R.id.accelZ);
+        azimutView = (TextView) findViewById(R.id.textView3);
+        pitchView = (TextView) findViewById(R.id.textView4);
+        rollView = (TextView) findViewById(R.id.textView5);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -69,8 +86,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 
+        //gravity = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+        //getRotationMatrix (R, I, gravity.);
+        //orientation = sensorManager.getOrientation();
+        linaccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorManager.registerListener(this, linaccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
 
         Thread t = new Thread() {
             @Override
@@ -127,8 +152,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onResume() {
         super.onResume();
-
+        sensorManager.registerListener(this, linaccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     public void onPause() {
@@ -143,12 +169,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
         //System.out.println("event sensor: " + event.sensor);
-        if(event.sensor == accelerometer) {
+        if (event.sensor == accelerometer) {
+            mGravity = event.values;
+        }
+        if (event.sensor == magnetometer) {
+            mGeomagnetic = event.values;
+        }
+        if (mGravity != null && mGeomagnetic != null) {
+            float Rs[] = new float[9];
+            float I[] = new float[9];
+            boolean success = SensorManager.getRotationMatrix(Rs, I, mGravity, mGeomagnetic);
+            if (success) {
+                float orientation[] = new float[3];
+                SensorManager.getOrientation(Rs, orientation);
+                azimut = orientation[0]; // orientation contains: azimut, pitch and roll
+                pitch = orientation[1];
+                roll = orientation[2];
+                displayOrientValues();
+            }
+        }
+
+        if(event.sensor == linaccelerometer) {
+
             accelDelX = accelOldX - event.values[0];
             accelDelY = accelOldY - event.values[1];
             accelDelZ = accelOldZ - event.values[2];
 
-
+            /*
             if (Math.abs(accelOldX - event.values[0]) < 2) {
                 accelDelX = 0;
             }
@@ -157,19 +204,40 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             if (Math.abs(accelOldZ - event.values[2]) < 2) {
                 accelDelZ = 0;
+            }*/
+
+            if (Math.abs(accelOldX - event.values[0]) > 0.2) {
+                accelOldX = event.values[0];
             }
-
-            accelOldX = event.values[0];
-            accelOldY = event.values[1];
-            accelOldZ = event.values[2];
-
+            if (Math.abs(accelOldY - event.values[1]) > 0.2) {
+                accelOldY = event.values[1];
+            }
+            if (Math.abs(accelOldZ - event.values[2]) > 0.2) {
+                accelOldZ = event.values[2];
+            }
             displayAccelValues();
         }
     }
 
     public void displayAccelValues() {
+        /*
         accelXView.setText(Float.toString(accelDelX));
         accelYView.setText(Float.toString(accelDelY));
         accelZView.setText(Float.toString(accelDelZ));
+        */
+        accelXView.setText(Float.toString(accelOldX));
+        accelYView.setText(Float.toString(accelOldY));
+        accelZView.setText(Float.toString(accelOldZ));
+    }
+
+    public void displayOrientValues() {
+        /*
+        accelXView.setText(Float.toString(accelDelX));
+        accelYView.setText(Float.toString(accelDelY));
+        accelZView.setText(Float.toString(accelDelZ));
+        */
+        azimutView.setText(Float.toString(azimut));
+        pitchView.setText(Float.toString(pitch));
+        rollView.setText(Float.toString(roll));
     }
 }

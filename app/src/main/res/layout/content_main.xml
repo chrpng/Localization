@@ -42,19 +42,20 @@
         android:layout_height="wrap_content"
         android:text="New Text"
         android:id="@+id/accelX"
-        android:layout_marginTop="52dp"
+        android:layout_marginTop="51dp"
         android:layout_below="@+id/textView2"
-        android:layout_alignLeft="@+id/accelY"
-        android:layout_alignStart="@+id/accelY" />
+        android:layout_toLeftOf="@+id/textView"
+        android:layout_toStartOf="@+id/textView" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="New Text"
         android:id="@+id/accelY"
-        android:layout_marginTop="19dp"
+        android:layout_marginTop="26dp"
         android:layout_below="@+id/accelX"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignLeft="@+id/accelX"
+        android:layout_alignStart="@+id/accelX" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -65,5 +66,34 @@
         android:layout_alignLeft="@+id/accelY"
         android:layout_alignStart="@+id/accelY"
         android:layout_marginTop="18dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/textView3"
+        android:layout_above="@+id/accelY"
+        android:layout_alignLeft="@+id/textView2"
+        android:layout_alignStart="@+id/textView2"
+        android:layout_marginLeft="26dp"
+        android:layout_marginStart="26dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/textView4"
+        android:layout_above="@+id/accelZ"
+        android:layout_alignLeft="@+id/textView3"
+        android:layout_alignStart="@+id/textView3" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/textView5"
+        android:layout_alignBottom="@+id/accelZ"
+        android:layout_alignLeft="@+id/textView4"
+        android:layout_alignStart="@+id/textView4" />
 
 </RelativeLayout>
