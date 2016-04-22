@@ -1,6 +1,8 @@
 package weili.localization;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,16 +19,27 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.webkit.WebView;
+import android.webkit.WebSettings;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+//import android.app.ProgressDialog;
 import java.lang.Math;
 import android.widget.Toast;
-import java.util.List;
+import java.util.*;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     TextView accelXView, accelYView, accelZView;
     TextView azimutView, pitchView, rollView;
     TextView rssiView, sigStrView;
+    WebView mWebView;
+
+    ProgressBar accelBar;
+    private float accelBarValue = 0;
+    private Handler accelBarHandler = new Handler();
+
+    private float stepDetectValue = 0;
 
     private float accelDelX = 0, accelDelY = 0, accelDelZ = 0;
     private float accelOldX, accelOldY, accelOldZ;
@@ -39,20 +52,30 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float[] mGravity;
     float[] mGeomagnetic;
 
+    long currentTime;
+    double seconds;
+    double timeElapsed;
+
     private Sensor gravity;
     private Sensor magnetometer;
     private float[] orientation;
     private float[] Rs;
     private float[] I;
 
+    Intent i;
 
     private SensorManager sensorManager;
     private WifiManager wifiManager;
+
+    Queue queue = new LinkedList();
+    Queue stepQueue = new LinkedList();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        currentTime = System.nanoTime();
 
         rssiView = (TextView) findViewById(R.id.textView);
         sigStrView = (TextView) findViewById(R.id.textView2);
@@ -63,7 +86,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         pitchView = (TextView) findViewById(R.id.textView4);
         rollView = (TextView) findViewById(R.id.textView5);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        mWebView = (WebView) findViewById(R.id.activity_main_webview);
+
+        accelBar = (ProgressBar) findViewById(R.id.progressBar);
+        accelBar.setMax(5);
+
+        /*Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -73,12 +101,41 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
-        });
+        });*/
+
+         /*if (savedInstanceState == null) {
+            getFragmentManager().beginTransaction()
+                    .add(R.id.container, new PlaceholderFragment())
+                    .commit();
+        }*/
+
+        WebSettings webSettings = mWebView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        mWebView.loadUrl("http://52.36.135.251 ");
 
         final Button button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Client.createMap();
+                //Client.createMap();
+                i = new Intent(Intent.ACTION_SEND);
+                i.setType("message/rfc822");
+                i.putExtra(Intent.EXTRA_EMAIL, new String[]{"brenbadia@gmail.com"});
+                i.putExtra(Intent.EXTRA_SUBJECT, "cutebrazilianmidgetmingle.com");
+                i.putExtra(Intent.EXTRA_TEXT, "#StepDistribution" + stepQueue + "#AccelerationData" + queue);
+                //i.putExtra(Intent.EXTRA_TEXT, "booty booteh");
+                try {
+                    startActivity(Intent.createChooser(i, "Send mail..."));
+                } catch (android.content.ActivityNotFoundException ex) {
+                    Toast.makeText(MainActivity.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        final Button button2 = (Button) findViewById(R.id.button2);
+        button2.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                queue.clear();
+                stepQueue.clear();
             }
         });
 
@@ -216,6 +273,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 accelOldZ = event.values[2];
             }
             displayAccelValues();
+            accelBarValue = (float) Math.sqrt(Math.pow(accelOldX, 2) + Math.pow(accelOldY, 2) + Math.pow(accelOldZ, 2));
+            queue.add(accelBarValue);
+            seconds = (double) (System.nanoTime() - currentTime) / 1E9;
+            if (accelBarValue > 5f && seconds > 0.2f) {
+                stepDetectValue = 1f;
+                currentTime = System.nanoTime();
+            } else {
+                stepDetectValue = 0f;
+            }
+            stepQueue.add(stepDetectValue);
+            accelBar.setProgress((int)accelBarValue);
         }
     }
 
