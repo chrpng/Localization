@@ -32,7 +32,7 @@ import java.util.*;
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     TextView accelXView, accelYView, accelZView;
     TextView azimutView, pitchView, rollView;
-    TextView rssiView, sigStrView;
+    TextView rssiView, sigStrView, rssiAverageView, stepView;
     WebView mWebView;
 
     ProgressBar accelBar;
@@ -69,6 +69,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     Queue queue = new LinkedList();
     Queue stepQueue = new LinkedList();
+    LinkedList RSSIQueue = new LinkedList();
+    int stepCount = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +88,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         azimutView = (TextView) findViewById(R.id.textView3);
         pitchView = (TextView) findViewById(R.id.textView4);
         rollView = (TextView) findViewById(R.id.textView5);
+        rssiAverageView = (TextView) findViewById(R.id.rssiAverageView);
+        stepView = (TextView) findViewById(R.id.stepView);
+
 
         mWebView = (WebView) findViewById(R.id.activity_main_webview);
 
@@ -112,6 +118,42 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         mWebView.loadUrl("http://52.36.135.251 ");
+
+        final Button RSSIButton = (Button) findViewById(R.id.RSSIButton);
+        RSSIButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+                int numSamples = 100;
+                int num_milliseconds = 4000;
+
+                for (int i = 0; i<numSamples; i++){
+                    int x = wifiManager.getConnectionInfo().getRssi();
+                    RSSIQueue.add(x);
+                    try{
+                        Thread.sleep(num_milliseconds/numSamples,0);
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+//                        e.printStackTrace();
+                    }
+                }
+
+
+                int meanRSSISamples = RSSIQueue.size();
+                double meanRSSI = 0;
+
+                for (int i = 0; i < RSSIQueue.size(); i++) {
+                    meanRSSI += (double) ((Integer) RSSIQueue.get(i));
+                }
+                meanRSSI = meanRSSI/ (new Double(meanRSSISamples));
+
+                rssiAverageView.setText("Average RSSI value: " + meanRSSI);
+                System.out.println("Average RSSI value: " + meanRSSI);
+
+
+            }
+        });
+
+
 
         final Button button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
@@ -284,6 +326,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             stepQueue.add(stepDetectValue);
             accelBar.setProgress((int)accelBarValue);
+
+            if (accelBarValue > 5.0){
+                stepView.setText("Steps: " + ++stepCount);
+
+            }
+
+
         }
     }
 
