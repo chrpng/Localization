@@ -30,9 +30,10 @@ import android.widget.Toast;
 import java.util.*;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
-    TextView accelXView, accelYView, accelZView;
-    TextView azimutView, pitchView, rollView;
-    TextView rssiView, sigStrView, rssiAverageView, stepView;
+//    TextView accelXView, accelYView, accelZView;
+//    TextView azimutView, pitchView, rollView;
+    TextView rssiView, sigStrView, rssiAverageView;
+    TextView stepView, stepDistView;
     WebView mWebView;
 
     ProgressBar accelBar;
@@ -70,6 +71,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Queue queue = new LinkedList();
     Queue stepQueue = new LinkedList();
     LinkedList RSSIQueue = new LinkedList();
+
+    LinkedList accelX = new LinkedList();
+    LinkedList accelY = new LinkedList();
+    LinkedList accelZ = new LinkedList();
+
+
     int stepCount = 0;
 
 
@@ -82,14 +89,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         rssiView = (TextView) findViewById(R.id.textView);
         sigStrView = (TextView) findViewById(R.id.textView2);
-        accelXView = (TextView) findViewById(R.id.accelX);
-        accelYView = (TextView) findViewById(R.id.accelY);
-        accelZView = (TextView) findViewById(R.id.accelZ);
-        azimutView = (TextView) findViewById(R.id.textView3);
-        pitchView = (TextView) findViewById(R.id.textView4);
-        rollView = (TextView) findViewById(R.id.textView5);
+//        accelXView = (TextView) findViewById(R.id.accelX);
+//        accelYView = (TextView) findViewById(R.id.accelY);
+//        accelZView = (TextView) findViewById(R.id.accelZ);
+//        azimutView = (TextView) findViewById(R.id.textView3);
+//        pitchView = (TextView) findViewById(R.id.textView4);
+//        rollView = (TextView) findViewById(R.id.textView5);
         rssiAverageView = (TextView) findViewById(R.id.rssiAverageView);
         stepView = (TextView) findViewById(R.id.stepView);
+        stepDistView = (TextView) findViewById(R.id.stepDistView);
 
 
         mWebView = (WebView) findViewById(R.id.activity_main_webview);
@@ -162,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 i = new Intent(Intent.ACTION_SEND);
                 i.setType("message/rfc822");
                 i.putExtra(Intent.EXTRA_EMAIL, new String[]{"brenbadia@gmail.com"});
-                i.putExtra(Intent.EXTRA_SUBJECT, "cutebrazilianmidgetmingle.com");
+                i.putExtra(Intent.EXTRA_SUBJECT, "Steps Test");
                 i.putExtra(Intent.EXTRA_TEXT, "#StepDistribution" + stepQueue + "#AccelerationData" + queue);
                 //i.putExtra(Intent.EXTRA_TEXT, "booty booteh");
                 try {
@@ -284,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 azimut = orientation[0]; // orientation contains: azimut, pitch and roll
                 pitch = orientation[1];
                 roll = orientation[2];
-                displayOrientValues();
+//                displayOrientValues();
             }
         }
 
@@ -293,17 +301,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             accelDelX = accelOldX - event.values[0];
             accelDelY = accelOldY - event.values[1];
             accelDelZ = accelOldZ - event.values[2];
-
-            /*
-            if (Math.abs(accelOldX - event.values[0]) < 2) {
-                accelDelX = 0;
-            }
-            if (Math.abs(accelOldY - event.values[1]) < 2) {
-                accelDelY = 0;
-            }
-            if (Math.abs(accelOldZ - event.values[2]) < 2) {
-                accelDelZ = 0;
-            }*/
 
             if (Math.abs(accelOldX - event.values[0]) > 0.2) {
                 accelOldX = event.values[0];
@@ -314,47 +311,82 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (Math.abs(accelOldZ - event.values[2]) > 0.2) {
                 accelOldZ = event.values[2];
             }
-            displayAccelValues();
+//            displayAccelValues();
+            accelX.add(accelOldX);
+            accelY.add(accelOldY);
+            accelZ.add(accelOldZ);
             accelBarValue = (float) Math.sqrt(Math.pow(accelOldX, 2) + Math.pow(accelOldY, 2) + Math.pow(accelOldZ, 2));
             queue.add(accelBarValue);
             seconds = (double) (System.nanoTime() - currentTime) / 1E9;
-            if (accelBarValue > 5f && seconds > 0.2f) {
+//            if (accelBarValue > 5f && seconds > 0.2f) { // for cell nexus s
+            if (accelBarValue > 2f && seconds > 0.4f) { // for tablet
+
                 stepDetectValue = 1f;
                 currentTime = System.nanoTime();
+                stepView.setText("Steps: " + ++stepCount);
+                float x_max, x_min;
+                float y_max, y_min;
+                float z_max, z_min;
+                double dist_x, dist_y, dist_z;
+
+                x_max = (float) Collections.max(accelX);
+                y_max = (float) Collections.max(accelY);
+                z_max = (float) Collections.max(accelZ);
+//                System.out.println("x_max: " + x_max+" y_max: " + y_max+" z_max: " + z_max);
+
+                x_min = (float) Collections.min(accelX);
+                y_min = (float) Collections.min(accelY);
+                z_min = (float) Collections.min(accelZ);
+//                System.out.println("x_min: " + x_min+" y_min: " + y_min+" z_min: " + z_min);
+
+                double s = 0.45;
+                dist_x = s*Math.pow((x_max - x_min),1.0/4.0);
+                dist_y = s*Math.pow((y_max - y_min),1.0/4.0);
+                dist_z = s*Math.pow((z_max - z_min),1.0/4.0);
+
+//                System.out.println("x_max - x_min: " + (x_max - x_min)+" y_max - y_min: " + (y_max - y_min)+" z_max - z_min: " + (z_max - z_min));
+                System.out.println("X: " + dist_x+" Y: " + dist_y+" Z: " + dist_z);
+
+
+                Math.pow(dist_x,2.0)
+                double dist = Math.pow(Math.pow(dist_x,2.0)+Math.pow(dist_y,2.0)+Math.pow(dist_z,2.0),1.0/2.0)
+
+                stepDistView.setText("X: " + dist_x+" Y: " + dist_y+" Z: " + dist_z);
+                System.out.println("size is "+ accelX.size());
+
+
+
             } else {
                 stepDetectValue = 0f;
             }
             stepQueue.add(stepDetectValue);
+
             accelBar.setProgress((int)accelBarValue);
-
-            if (accelBarValue > 5.0){
-                stepView.setText("Steps: " + ++stepCount);
-
-            }
-
 
         }
     }
 
-    public void displayAccelValues() {
-        /*
-        accelXView.setText(Float.toString(accelDelX));
-        accelYView.setText(Float.toString(accelDelY));
-        accelZView.setText(Float.toString(accelDelZ));
-        */
-        accelXView.setText(Float.toString(accelOldX));
-        accelYView.setText(Float.toString(accelOldY));
-        accelZView.setText(Float.toString(accelOldZ));
-    }
 
-    public void displayOrientValues() {
-        /*
-        accelXView.setText(Float.toString(accelDelX));
-        accelYView.setText(Float.toString(accelDelY));
-        accelZView.setText(Float.toString(accelDelZ));
-        */
-        azimutView.setText(Float.toString(azimut));
-        pitchView.setText(Float.toString(pitch));
-        rollView.setText(Float.toString(roll));
-    }
+
+//    public void displayAccelValues() {
+//        /*
+//        accelXView.setText(Float.toString(accelDelX));
+//        accelYView.setText(Float.toString(accelDelY));
+//        accelZView.setText(Float.toString(accelDelZ));
+//        */
+//        accelXView.setText(Float.toString(accelOldX));
+//        accelYView.setText(Float.toString(accelOldY));
+//        accelZView.setText(Float.toString(accelOldZ));
+//    }
+
+//    public void displayOrientValues() {
+//        /*
+//        accelXView.setText(Float.toString(accelDelX));
+//        accelYView.setText(Float.toString(accelDelY));
+//        accelZView.setText(Float.toString(accelDelZ));
+//        */
+//        azimutView.setText(Float.toString(azimut));
+//        pitchView.setText(Float.toString(pitch));
+//        rollView.setText(Float.toString(roll));
+//    }
 }
