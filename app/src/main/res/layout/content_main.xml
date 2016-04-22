@@ -32,6 +32,13 @@
             android:layout_centerHorizontal="true"
             android:layout_column="32" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/rssiAverageView"
+            android:layout_column="34" />
+
     </TableRow>
 
     <TableRow
@@ -64,6 +71,20 @@
             android:text="Clear Queue"
             android:id="@+id/button2"
             android:layout_column="32" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RSSI_Avg"
+            android:id="@+id/RSSIButton"
+            android:layout_column="34" />
+    </TableRow>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
     </TableRow>
 
     <TableRow
@@ -89,6 +110,13 @@
             android:layout_alignLeft="@+id/textView2"
             android:layout_alignStart="@+id/textView2"
             android:layout_column="32" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Steps: "
+            android:id="@+id/stepView"
+            android:layout_column="33" />
 
     </TableRow>
 
@@ -160,7 +188,7 @@
         <WebView
             android:id="@+id/activity_main_webview"
             android:layout_width="wrap_content"
-            android:layout_height="320dp"
+            android:layout_height="600dp"
             android:layout_weight="1"
             android:layout_span="3" />
     </TableRow>
