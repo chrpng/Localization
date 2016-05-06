@@ -73,7 +73,6 @@ public class Client {
 	}
 
 	public static String constructURL(String IP,String name,double latt, double longi, double vecx, double vecy){
-
 		String url = "http://";
 		url=url+IP;
 		url=url+"/insert.php?";
@@ -83,7 +82,6 @@ public class Client {
 		url=url+"&vecx="+vecx;
 		url=url+"&vecy="+vecy;
 		return url;
-
 	}
 
 	public static String getHTML(String urlToRead) throws Exception {
